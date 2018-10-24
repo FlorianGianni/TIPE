@@ -1,9 +1,10 @@
 from settings import *
 
 class Voie(object):
-    def __init__(self, route, coord):
+    def __init__(self, route, coord, id):
         self.route = route # Route associe a la voie
         self.coord = coord # Coordonnee de la route sur l'axe perpendiculaire a route.axe
+        self.id = id # 0 si voie de haut/gauche, 1 sinon
         self.traffic = [] # Liste des voitures circulant sur la voie
         self.feux = [] # Liste des feux sur la voie
     

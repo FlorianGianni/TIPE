@@ -5,7 +5,7 @@ class Route(object):
     def __init__(self, axe, coord):
         self.axe = axe # 'x' ou 'y'
         self.coord = coord # Coordonnee de la route sur l'axe perpendiculaire a axe
-        self.voies = [Voie(self, coord - m2p(largeurVoie)//2), Voie(self, coord + m2p(largeurVoie)//2)]
+        self.voies = [Voie(self, coord - m2p(largeurVoie)//2, 0), Voie(self, coord + m2p(largeurVoie)//2, 1)]
     
     def afficher(self):
         for voie in self.voies:

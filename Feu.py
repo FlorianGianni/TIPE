@@ -13,6 +13,7 @@ class passeRougeT(Thread):
         sleep(dureeFeuOrange)
         self.feu.etat = 'rouge'
 
+
 class Feu(object):
     def __init__(self, voie, coord, etat):
         self.voie = voie

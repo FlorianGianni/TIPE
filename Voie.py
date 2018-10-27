@@ -5,8 +5,14 @@ class Voie(object):
         self.route = route # Route associe a la voie
         self.coord = coord # Coordonnee de la route sur l'axe perpendiculaire a route.axe
         self.id = id # 0 si voie de haut/gauche, 1 sinon
-        self.traffic = [] # Liste des voitures circulant sur la voie
+        self.voitures = [] # Liste des voitures circulant sur la voie
         self.feux = [] # Liste des feux sur la voie
+    
+    def sens(self):
+        if (self.route.axe == 'x' and self.id == 1) or (self.route.axe == 'y' and self.id == 0):
+            return 'positif'
+        else:
+            return 'negatif'
     
     def afficher(self):
         fill(40)

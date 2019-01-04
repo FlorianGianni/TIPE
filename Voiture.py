@@ -17,7 +17,7 @@ class Voiture(object):
         self.__passe_orange = False # Variable indiquant si la voiture compte passer a l'orange
         self.__tcreation = -1 # Temps ou la voiture a ete creee (en s)
     
-    def tsimu(self):
+    def tsimu(self): # Renvoie la duree pendant laquelle la voiture etait dans la simulation
         return (millis()-self.__tcreation)//1000
     
     def __couleur(self):

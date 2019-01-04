@@ -5,7 +5,7 @@ from Voie import *
 from Route import *
 from Voiture import *
 
-from threading import Thread
+from threading import Thread, active_count
 from time import sleep
 from random import randint
 
@@ -45,9 +45,8 @@ def init():
                   Carrefour([routes[3].voies[0].feux[0], routes[3].voies[1].feux[0]], [routes[0].voies[0].feux[1], routes[0].voies[1].feux[1]], dureeFeuVertM, dureeFeuVertM),
                   Carrefour([routes[3].voies[0].feux[1], routes[3].voies[1].feux[1]], [routes[1].voies[0].feux[1], routes[1].voies[1].feux[1]], dureeFeuVertM, dureeFeuVertM)]
     
-    global proba, ptot
-    proba = [.5,.05,.1,.01,.1,.04,.19,0.01]
-    ptot = [0,0,0,0,0,0,0,0]
+    global proba
+    proba = [.1, .4, .04, .3, .01, .1, .03, .02]
     
     global feux, voies
     feux = listeFeux()
@@ -92,10 +91,15 @@ def setup():
     if utiliserFeuxManuels:
         actualiserFeuxM().start()
     else:
-        global pop, simu
-        pop = [[randint(0, 120) for i in range(len(feux)/2)] for i in range(taillePop)]
+        global pop, scores, index
+        pop = [[(randint(1, dureeFeuRougeMax), randint(1, dureeFeuRougeMax), randint(0 ,1)) for i in range(len(feux)//4)] for i in range(taillePop)] # DureeFeuVert, dureeFeuRouge, 0 pour x vert en premier ou 1 pour y vert en premier
+        print('============================== GENERATION  0 ==============================') 
+        print(pop)
+        scores = [0] * taillePop
         index = 0
-        scores = [0] * len(pop)
+        for i in range(len(carrefours)):
+            carrefours[i].dureeFeuVertX, carrefours[i].dureeFeuRougeX = pop[0][i][:2]
+            actualiserFeux(carrefours[i], 0, pop[0][i][2]).start()
 
 
 def draw():
@@ -104,8 +108,6 @@ def draw():
     global voitures
     voitures = listeVoitures()
     
-    global simu, pop
-    
     afficherGrille()
     afficherRoutes()
     afficherFeux()
@@ -113,9 +115,68 @@ def draw():
     afficherVoitures()
     supprimerVoitures()
     
+    # print(active_count())
+    
+    global scores, index, voituresRestantes, nVoitures, pop
     if voituresRestantes == 0:
-        scores[index] = (1/scores[index])**2 # Fonction d'evaluation
-        print([ceil((float(x)/n)*100) for x in ptot])
+        print('========= Simulation ' + str(index+1) + ' =========')
+        print(scores[index]//n)
+        scores[index] = (1000./scores[index])**2 # Fonction d'evaluation
+        if index + 1 < taillePop:
+            index += 1
+            for i in range(len(carrefours)):
+                carrefours[i].dureeFeuVertX, carrefours[i].dureeFeuRougeX = pop[index][i][:2]
+                actualiserFeux(carrefours[i], index, pop[index][i][2]).start()
+            nVoitures = 0
+            voituresRestantes = n
+        else: # Reproduction/Selection
+            print('=============== Scores ===============')
+            print(scores)
+            print('============================== GENERATION ==============================')
+            nouvellePop = []
+            for j in range(taillePop):
+                parent1 = 0
+                parent2 = 0
+                p = random(1)
+                for i in range(taillePop):
+                    if p < sum(scores[:i+1])/max(scores):
+                        parent1 = i
+                        break
+                p = random(1)
+                for i in range(taillePop):
+                    if p < sum(scores[:i+1])/max(scores):
+                        parent2 = i
+                        break
+                
+                fils = []
+                for i in range(len(carrefours)):
+                    if i % 2 == 0:
+                        fils.append((pop[parent1][i][0], pop[parent2][i][1], pop[parent1][i][2]))
+                    else:
+                        fils.append((pop[parent2][i][0], pop[parent1][i][1], pop[parent2][i][2]))
+                nouvellePop.append(fils)
+            
+            for fils in nouvellePop:
+                for carrefour in fils:
+                    for i in range(3):
+                        if random(1) < mutation:
+                            print('*mutation*')
+                            carrefour_list = list(carrefour)
+                            if i != 2:
+                                carrefour_list[i] = randint(1, dureeFeuRougeMax)
+                            else:
+                                carrefour_list[i] = randint(0, 1)
+                            carrefour = tuple(carrefour_list)
+            
+            pop = nouvellePop
+            print(pop)
+            scores = [0] * taillePop
+            index = 0
+            for i in range(len(carrefours)):
+                carrefours[i].dureeFeuVertX, carrefours[i].dureeFeuRougeX = pop[index][i][:2]
+                actualiserFeux(carrefours[i], index, pop[index][i][2]).start()
+            nVoitures = 0
+            voituresRestantes = n
     
     sleep(dt)
 
@@ -166,18 +227,15 @@ def creerVoitures():
                 if len(voie.voitures) == 0:
                     voie.voitures.append(Voiture(voie, m, coord, v, a, amax, tsecu, distmin, longueur, largeur))
                     nVoitures += 1
-                    ptot[i] += 1
                 elif (voie.voitures[-1].coord > coord + voie.voitures[-1].longueur/2 + longueur/2 + distmin and voie.sens() == 'positif') or (voie.voitures[-1].coord < coord - voie.voitures[-1].longueur/2 - longueur/2 - distmin and voie.sens() == 'negatif'):
                     voie.voitures.append(Voiture(voie, m, coord, v, a, amax, tsecu, distmin, longueur, largeur))
                     nVoitures += 1
-                    ptot[i] += 1
                 else:
                     coord = voie.voitures[-1].coord - voie.voitures[-1].longueur/2 - longueur/2 - distmin
                     if voie.sens() == 'negatif':
                         coord = voie.voitures[-1].coord + voie.voitures[-1].longueur/2 + longueur/2 + distmin
                     voie.voitures.append(Voiture(voie, m, coord, v, a, amax, tsecu, distmin, longueur, largeur))
                     nVoitures += 1
-                    ptot[i] += 1
                 break
 
 
@@ -192,6 +250,42 @@ def supprimerVoitures():
             scores[index] += voiture.tsimu()
             voiture.voie.voitures.remove(voiture)
             voituresRestantes -= 1
+
+class actualiserFeux(Thread):
+    def __init__(self, carrefour, index, p):
+        Thread.__init__(self)
+        self.carrefour = carrefour
+        self.index = index
+        if p == 0:
+            self.feuxP = self.carrefour.feuxX
+            self.feuxD = self.carrefour.feuxY
+            self.dureeFeuVertP = self.carrefour.dureeFeuVertX
+            self.dureeFeuVertD = self.carrefour.dureeFeuRougeX
+        else:
+            self.feuxP = self.carrefour.feuxY
+            self.feuxD = self.carrefour.feuxX
+            self.dureeFeuVertP = self.carrefour.dureeFeuRougeX
+            self.dureeFeuVertD = self.carrefour.dureeFeuVertX
+        
+    
+    def run(self):
+        global index
+        while self.index == index:
+            for feu in self.feuxD:
+                feu.passeRouge()
+            sleep(dureeFeuOrange + dureeRougeDeDegagement)
+            if self.index == index:
+                for feu in self.feuxP:
+                    feu.passeVert()
+                sleep(self.dureeFeuVertP)
+            if self.index == index:
+                for feu in self.feuxP:
+                    feu.passeRouge()
+                sleep(dureeFeuOrange + dureeRougeDeDegagement)
+            if self.index == index:
+                for feu in self.feuxD:
+                    feu.passeVert()
+                sleep(self.dureeFeuVertD)
 
 
 class actualiserFeuxM(Thread):

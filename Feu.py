@@ -9,9 +9,10 @@ class passeRougeT(Thread):
         self.feu = feu
     
     def run(self):
-        self.feu.etat = 'orange'
-        sleep(dureeFeuOrange)
-        self.feu.etat = 'rouge'
+        if self.feu.etat == 'vert':
+            self.feu.etat = 'orange'
+            sleep(dureeFeuOrange)
+            self.feu.etat = 'rouge'
 
 
 class Feu(object):

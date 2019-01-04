@@ -15,6 +15,10 @@ class Voiture(object):
         self.distsecu = self.v * self.tsecu # Distance de securite avec le vehicule devant (en pixel)
         self.__feuDevant = -1 # Feu devant (-1 si aucun)
         self.__passe_orange = False # Variable indiquant si la voiture compte passer a l'orange
+        self.__tcreation = -1 # Temps ou la voiture a ete creee (en s)
+    
+    def tsimu(self):
+        return (millis()-self.__tcreation)//1000
     
     def __couleur(self):
         i = map(self.v, 0, kmph2pps(vmaxS), 0, 255)
@@ -117,7 +121,7 @@ class Voiture(object):
                 if feuDevant.etat == 'vert': # Si il est vert, alors on passe la variable passe_orange a False puisqu'on aura alors pas le temps de freiner si le feu passe a l'orange
                     self.__passe_orange = True
             
-            if 0 < distFeuDevant < self.distmin and feuDevant.etat == 'rouge': # Si le feu est rouge et qu'on est tres proch, on s'arrete
+            if 0 < distFeuDevant < self.distmin and feuDevant.etat == 'rouge': # Si le feu est rouge et qu'on est tres proche, on s'arrete
                 self.a = 0
                 self.v = 0
             
@@ -133,6 +137,8 @@ class Voiture(object):
         self.coord += sens * dt * self.v
         self.distsecu = self.tsecu * self.v # On reactualise la distance de securite
         self.__feuDevant = feuDevant # On reactualise la variable __feuDevant
+        if self.__tcreation == -1 and 0 < self.coord + self.longueur/2 < width + self.longueur:
+            self.__tcreation = millis()
         
     
     def afficher(self):

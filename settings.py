@@ -8,7 +8,8 @@ dessinerLignesEffetsDeFeux = False # Dessiner les lignes d'effet de feux ?
 dureeFeuOrange = 3 # Duree du feu orange (entre 3 et 5 s)
 mgrid = 10 # Longueur du cote d'un carre de l'echelle (en m)
 dt = 0.03 # Periode de la simulation
-dureeFeuVertM = 10 # Duree de feu vert en mode manuel
+dureeFeuVertM = 30 # Duree de feu vert en mode manuel
+dureeFeuRougeMax = 120 # Duree de feu rouge maximale
 dureeRougeDeDegagement = ceil(float(2*largeurVoie)/1) # Duree pendant laquelle tous les feux sont rouges (1 m/s pour les pietons en France)
 utiliserFeuxManuels = True # Utiliser les feux avec sequences predefinies ?
 mM = 1000 # Masse moyenne d'une voiture (en kg)
@@ -16,7 +17,9 @@ vmaxS = 50 # Vitesse maximale de toute la simulation (en km/h)
 amaxM = 3 # Acceleration moyenne d'une voiture (en m/s2)
 longueurVoitureM = 4 # Longueur moyenne d'une voiture (en m)
 largeurVoitureM = 2 # Largeur moyenne d'une voiture (en m)
-vps = 0.2 # Voiture par seconde par voie
+vps = 30 # Voitures par seconde
+n = 100 # Nombre de voiture pour une simulation
+taillePop = 7 # Taille de la population
 
 def p2m(p): # Pixel vers metre
     return p // ppm

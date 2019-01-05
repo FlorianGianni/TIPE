@@ -46,7 +46,7 @@ def init():
                   Carrefour([routes[3].voies[0].feux[1], routes[3].voies[1].feux[1]], [routes[1].voies[0].feux[1], routes[1].voies[1].feux[1]], dureeFeuVertM, dureeFeuVertM)]
     
     global proba
-    proba = [.05, .1, .1, .2, .1, .3, .05, .1]
+    proba = [.05, .1, .1, .2, .1, .3, .05, .1] # Dans l'ordre : gauche droite puis haut bas
     
     global feux, voies
     feux = listeFeux()
@@ -124,7 +124,7 @@ def draw():
         print(pop[index])
         print(scores[index]//n)
         scores[index] = (1000./(scores[index]/n))**2 # Fonction d'evaluation
-        if index + 1 < taillePop:
+        if index + 1 < taillePop: # S'il reste encore au moins une simulation a effectuer dans la population
             index += 1
             for i in range(len(carrefours)):
                 carrefours[i].dureeFeuVertX, carrefours[i].dureeFeuRougeX = pop[index][i][:2]
@@ -139,6 +139,7 @@ def draw():
             nouvellePop = []
             parents = []
             for j in range(taillePop):
+                # Choix des parents (ici 2 parents et differents)
                 parent1 = -1
                 parent2 = -1
                 p = random(1)
@@ -155,6 +156,7 @@ def draw():
                 parents.append((parent1, parent2))
                 
                 fils = []
+                # Reproduction (1 allele sur deux)
                 for i in range(len(carrefours)):
                     if i % 2 == 0:
                         fils.append((pop[parent1][i][0], pop[parent2][i][1], pop[parent1][i][2]))
@@ -162,17 +164,18 @@ def draw():
                         fils.append((pop[parent2][i][0], pop[parent1][i][1], pop[parent2][i][2]))
                 nouvellePop.append(fils)
             
+            # Mutation
             for fils in nouvellePop:
-                for carrefour in fils:
-                    for i in range(3):
+                for i in range(len(fils)):
+                    for j in range(3):
                         if random(1) < mutation:
                             print('*mutation*')
-                            carrefour_list = list(carrefour)
-                            if i != 2:
-                                carrefour_list[i] = randint(1, dureeFeuRougeMax)
+                            carrefour = list(fils[i])
+                            if j != 2:
+                                carrefour[j] = randint(1, dureeFeuRougeMax)
                             else:
-                                carrefour_list[i] = randint(0, 1)
-                            carrefour = tuple(carrefour_list)
+                                carrefour[j] = randint(0, 1)
+                            fils[i] = tuple(carrefour)
             
             pop = nouvellePop
             print(parents)

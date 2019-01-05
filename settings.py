@@ -19,8 +19,8 @@ longueurVoitureM = 4 # Longueur moyenne d'une voiture (en m)
 largeurVoitureM = 2 # Largeur moyenne d'une voiture (en m)
 vps = 30 # Voitures par seconde
 n = 100 # Nombre de voiture pour une simulation
-taillePop = 9 # Taille de la population (> 1)
-mutation = 0.02 # Taux de mutation
+taillePop = 21 # Taille de la population (> 1)
+mutation = 0.01 # Taux de mutation
 
 def p2m(p): # Pixel vers metre
     return p // ppm

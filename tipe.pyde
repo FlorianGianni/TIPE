@@ -46,7 +46,7 @@ def init():
                   Carrefour([routes[3].voies[0].feux[1], routes[3].voies[1].feux[1]], [routes[1].voies[0].feux[1], routes[1].voies[1].feux[1]], dureeFeuVertM, dureeFeuVertM)]
     
     global proba
-    proba = [.1, .4, .04, .3, .01, .1, .03, .02]
+    proba = [.05, .1, .1, .2, .1, .3, .05, .1]
     
     global feux, voies
     feux = listeFeux()
@@ -91,7 +91,8 @@ def setup():
     if utiliserFeuxManuels:
         actualiserFeuxM().start()
     else:
-        global pop, scores, index
+        global generation, pop, scores, index
+        generation = 0
         pop = [[(randint(1, dureeFeuRougeMax), randint(1, dureeFeuRougeMax), randint(0 ,1)) for i in range(len(feux)//4)] for i in range(taillePop)] # DureeFeuVert, dureeFeuRouge, 0 pour x vert en premier ou 1 pour y vert en premier
         print('============================== GENERATION  0 ==============================') 
         print(pop)
@@ -117,11 +118,12 @@ def draw():
     
     # print(active_count())
     
-    global scores, index, voituresRestantes, nVoitures, pop
+    global scores, index, voituresRestantes, nVoitures, pop, generation
     if voituresRestantes == 0:
         print('========= Simulation ' + str(index+1) + ' =========')
+        print(pop[index])
         print(scores[index]//n)
-        scores[index] = (1000./scores[index])**2 # Fonction d'evaluation
+        scores[index] = (1000./(scores[index]/n))**2 # Fonction d'evaluation
         if index + 1 < taillePop:
             index += 1
             for i in range(len(carrefours)):
@@ -132,21 +134,25 @@ def draw():
         else: # Reproduction/Selection
             print('=============== Scores ===============')
             print(scores)
-            print('============================== GENERATION ==============================')
+            generation += 1
+            print('============================== GENERATION ' + str(generation) + ' ==============================')
             nouvellePop = []
+            parents = []
             for j in range(taillePop):
-                parent1 = 0
-                parent2 = 0
+                parent1 = -1
+                parent2 = -1
                 p = random(1)
                 for i in range(taillePop):
-                    if p < sum(scores[:i+1])/max(scores):
+                    if p < sum(scores[:i+1])/sum(scores):
                         parent1 = i
                         break
-                p = random(1)
-                for i in range(taillePop):
-                    if p < sum(scores[:i+1])/max(scores):
-                        parent2 = i
-                        break
+                while parent2 == parent1 or parent2 == -1:
+                    p = random(1)
+                    for i in range(taillePop):
+                        if p < sum(scores[:i+1])/sum(scores):
+                            parent2 = i
+                            break
+                parents.append((parent1, parent2))
                 
                 fils = []
                 for i in range(len(carrefours)):
@@ -169,6 +175,7 @@ def draw():
                             carrefour = tuple(carrefour_list)
             
             pop = nouvellePop
+            print(parents)
             print(pop)
             scores = [0] * taillePop
             index = 0

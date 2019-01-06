@@ -94,10 +94,14 @@ def setup():
         global generation, pop, scores, index
         generation = 0
         pop = [[(randint(1, dureeFeuRougeMax), randint(1, dureeFeuRougeMax), randint(0 ,1)) for i in range(len(feux)//4)] for i in range(taillePop)] # DureeFeuVert, dureeFeuRouge, 0 pour x vert en premier ou 1 pour y vert en premier
-        print('============================== GENERATION  0 ==============================') 
-        print(pop)
         scores = [0] * taillePop
         index = 0
+        print('============================== GENERATION 0 ==============================')
+        print(pop)
+        dureeGeneration = millis()
+        print('============================== Simulation 1 ==============================')
+        print(pop[index])
+        dureeSimulation = millis()
         for i in range(len(carrefours)):
             carrefours[i].dureeFeuVertX, carrefours[i].dureeFeuRougeX = pop[0][i][:2]
             actualiserFeux(carrefours[i], 0, pop[0][i][2]).start()
@@ -118,22 +122,27 @@ def draw():
     
     # print(active_count())
     
-    global scores, index, voituresRestantes, nVoitures, pop, generation
-    if voituresRestantes == 0:
-        print('========= Simulation ' + str(index+1) + ' =========')
-        print(pop[index])
-        print(scores[index]//n)
-        scores[index] = (1000./(scores[index]/n))**2 # Fonction d'evaluation
+    global scores, index, voituresRestantes, nVoitures, pop, generation, dureeSimulation
+    if voituresRestantes == 0 and not(utiliserFeuxManuels):
+        print('Duree de la simulation : ' + str((millis()-dureeSimulation)//(1000*60)) + ' minutes')
+        print('Temps passe par les voitures dans la simulation : ' + str(scores[index]/n) + ' secondes en moyenne')
+        scores[index] = (1000./(scores[index]/n))**4 # Fonction d'evaluation
+        print('Score : ' + str(int(scores[index])))
         if index + 1 < taillePop: # S'il reste encore au moins une simulation a effectuer dans la population
             index += 1
+            nVoitures = 0
+            voituresRestantes = n
+            print('============================== Simulation ' + str(index+1) + ' ==============================')
+            print(pop[index])
+            dureeSimulation = millis()
             for i in range(len(carrefours)):
                 carrefours[i].dureeFeuVertX, carrefours[i].dureeFeuRougeX = pop[index][i][:2]
                 actualiserFeux(carrefours[i], index, pop[index][i][2]).start()
-            nVoitures = 0
-            voituresRestantes = n
         else: # Reproduction/Selection
-            print('=============== Scores ===============')
-            print(scores)
+            global dureeGeneration
+            print('================================= Scores =================================')
+            print(str((millis()-dureeGeneration)//(1000*60)) + ' minutes')
+            print([int(score) for score in scores])
             generation += 1
             print('============================== GENERATION ' + str(generation) + ' ==============================')
             nouvellePop = []
@@ -164,6 +173,8 @@ def draw():
                         fils.append((pop[parent2][i][0], pop[parent1][i][1], pop[parent2][i][2]))
                 nouvellePop.append(fils)
             
+            print([(a+1, b+1) for (a, b) in parents])
+            
             # Mutation
             for fils in nouvellePop:
                 for i in range(len(fils)):
@@ -178,8 +189,6 @@ def draw():
                             fils[i] = tuple(carrefour)
             
             pop = nouvellePop
-            print(parents)
-            print(pop)
             scores = [0] * taillePop
             index = 0
             for i in range(len(carrefours)):
@@ -187,8 +196,17 @@ def draw():
                 actualiserFeux(carrefours[i], index, pop[index][i][2]).start()
             nVoitures = 0
             voituresRestantes = n
+            print(pop)
+            dureeGeneration = millis()
+            print('============================== Simulation ' + str(index+1) + ' ==============================')
+            print(pop[index])
+            dureeSimulation = millis()
     
-    sleep(dt)
+    # print('a')
+    # t = millis()
+    # print(t)
+    sleep(dt/vitesseSimu)
+    # print(millis()-t)
 
 
 def afficherGrille():
@@ -217,8 +235,8 @@ def afficherVoitures():
 
 
 def creerVoitures():
-    global nVoitures
-    if nVoitures < n and randint(0, ceil(1/(vps*dt))) == 0:
+    global nVoitures, vitesseSimu
+    if nVoitures < n and randint(0, ceil(1/(vps*dt/vitesseSimu))) == 0:
         p = random(1)
         for i in range(len(voies)):
             if p < sum(proba[:i+1]):
@@ -283,19 +301,19 @@ class actualiserFeux(Thread):
         while self.index == index:
             for feu in self.feuxD:
                 feu.passeRouge()
-            sleep(dureeFeuOrange + dureeRougeDeDegagement)
+            sleep((dureeFeuOrange + dureeRougeDeDegagement)/vitesseSimu)
             if self.index == index:
                 for feu in self.feuxP:
                     feu.passeVert()
-                sleep(self.dureeFeuVertP)
+                sleep(self.dureeFeuVertP/vitesseSimu)
             if self.index == index:
                 for feu in self.feuxP:
                     feu.passeRouge()
-                sleep(dureeFeuOrange + dureeRougeDeDegagement)
+                sleep((dureeFeuOrange + dureeRougeDeDegagement)/vitesseSimu)
             if self.index == index:
                 for feu in self.feuxD:
                     feu.passeVert()
-                sleep(self.dureeFeuVertD)
+                sleep(self.dureeFeuVertD/vitesseSimu)
 
 
 class actualiserFeuxM(Thread):
@@ -304,11 +322,11 @@ class actualiserFeuxM(Thread):
     
     def run(self):
         while True:
-            sleep(dureeFeuVertM)
+            sleep(dureeFeuVertM/vitesseSimu)
             feuxVert = [feu for feu in feux if feu.etat == 'vert']
             feuxRouge = [feu for feu in feux if feu.etat == 'rouge']
             for feu in feuxVert:
                 feu.passeRouge()
-            sleep(dureeFeuOrange + dureeRougeDeDegagement)
+            sleep((dureeFeuOrange + dureeRougeDeDegagement)/vitesseSimu)
             for feu in feuxRouge:
                 feu.passeVert()

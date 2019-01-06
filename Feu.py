@@ -11,7 +11,7 @@ class passeRougeT(Thread):
     def run(self):
         if self.feu.etat == 'vert':
             self.feu.etat = 'orange'
-            sleep(dureeFeuOrange)
+            sleep(dureeFeuOrange/vitesseSimu)
             self.feu.etat = 'rouge'
 
 

@@ -78,7 +78,7 @@ def listeVoies():
 
 
 def setup():
-    size(900, 900)
+    size(1000, 1000)
     noStroke()
     rectMode(CENTER)
     
@@ -245,7 +245,7 @@ def creerVoitures():
                 v = kmph2pps(vmaxS)
                 a = 0
                 amax = m2p(amaxM)
-                tsecu = float(randint(10, 21)) / 10
+                tsecu = float(randint(15, 26)) / 10
                 distmin = m2p(float(randint(5, 16)) / 10)
                 longueur = m2p(longueurVoitureM)
                 largeur = m2p(largeurVoitureM)
